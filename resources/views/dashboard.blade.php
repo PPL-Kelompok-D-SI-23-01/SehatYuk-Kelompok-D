@@ -288,6 +288,45 @@
         </div>
 
         <div class="card">
+            <div class="card-header">
+                <div class="icon-box nutrisi-icon">🥗</div>
+                <h4 style="font-size:14px; color:#555;">Ringkasan Nutrisi</h4>
+            </div>
+            
+            @if(!$isProfileLengkap)
+                <div style="color:#e74c3c; font-size:12px; font-weight:600; margin-top: 5px;">
+                    ⚠ Lengkapi profil (BB, TB, Umur, Gender)
+                </div>
+                <small style="color:#999; font-size: 10px; line-height: 1.2; display: block; margin-top: 5px;">
+                    Isi profil terlebih dahulu untuk menghitung kebutuhan kalori harian Anda secara akurat.
+                </small>
+            @else
+                <div class="card-value"
+                     @style([
+                        'color: #e74c3c' => $nutrisiPersen >= 100,
+                        'color: #f39c12' => $nutrisiPersen >= 80 && $nutrisiPersen < 100,
+                        'color: #2ecc71' => $nutrisiPersen < 80,
+                     ])>
+                    {{ $nutrisiPersen }}%
+                </div>
+
+                <div style="font-size:12px; color:#555; margin-top:2px; font-weight:600;">
+                    {{ number_format($totalKaloriMakro) }} / {{ number_format($targetKaloriMasuk) }} kcal
+                </div>
+
+                <div style="font-size:10px; color:#aaa; margin-top: 5px;">
+                    Karbo: {{ round($persenKarbo) }}% | 
+                    Protein: {{ round($persenProtein) }}% | 
+                    Lemak: {{ round($persenLemak) }}%
+                </div>
+            @endif
+
+            <svg class="wave" viewBox="0 0 500 100" preserveAspectRatio="none">
+                <path d="M0,70 C120,90 250,10 380,50 C430,70 470,40 500,50 L500,100 L0,100 Z" fill="rgba(46,204,113,0.2)"></path>
+            </svg>
+        </div>
+
+        <div class="card">
             <h4 style="font-size:14px; color:#555; margin-bottom:10px;">BMI Calculator</h4>
             <div class="bmi-card">
                 <div class="bmi-left">

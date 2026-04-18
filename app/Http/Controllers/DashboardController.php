@@ -207,6 +207,49 @@ class DashboardController extends Controller
 
 
             // ==========================================
+            // 🔥 DATA RINGKASAN HARI INI
+            // ==========================================
+            $kaloriTerbakar = LogAktivitas::where('user_id', $user->id)
+                ->whereDate('tanggal', $today)
+                ->sum('kalori') ?? 0;
+
+            $totalKaloriMakro = DashboardHarian::where('user_id', $user->id)
+                ->whereDate('tanggal', now())
+                ->sum('kalori_masuk') ?? 0;
+
+            $totalKalori = $totalKaloriMakro;
+            $sisaKalori = $targetKaloriMasuk - ($totalKalori - $kaloriTerbakar);
+
+
+            // ==========================================
+            // 🔥 RINGKASAN NUTRISI (MAKRO)
+            // ==========================================
+            $totalKarbo = DashboardHarian::where('user_id', $user->id)
+                ->whereDate('tanggal', now())
+                ->sum('karbo') ?? 0;
+
+            $totalProtein = DashboardHarian::where('user_id', $user->id)
+                ->whereDate('tanggal', now())
+                ->sum('protein') ?? 0;
+
+            $totalLemak = DashboardHarian::where('user_id', $user->id)
+                ->whereDate('tanggal', now())
+                ->sum('lemak') ?? 0;
+
+            $nutrisiPersen = $targetKaloriMasuk > 0
+                ? min(100, round(($totalKaloriMakro / $targetKaloriMasuk) * 100))
+                : 0;
+
+            $targetKarboIndiv = $client->karbo_harian ?? (($targetKaloriMasuk * 0.5) / 4);
+            $targetProteinIndiv = $client->protein_harian ?? (($targetKaloriMasuk * 0.25) / 4);
+            $targetLemakIndiv = $client->lemak_harian ?? (($targetKaloriMasuk * 0.25) / 9);
+
+            $persenKarbo = $targetKarboIndiv > 0 ? min(100, ($totalKarbo / $targetKarboIndiv) * 100) : 0;
+            $persenProtein = $targetProteinIndiv > 0 ? min(100, ($totalProtein / $targetProteinIndiv) * 100) : 0;
+            $persenLemak = $targetLemakIndiv > 0 ? min(100, ($totalLemak / $targetLemakIndiv) * 100) : 0;
+
+
+            // ==========================================
             // 🔥 STATUS BMI & WARNA
             // ==========================================
             $statusBMI = 'Normal';
