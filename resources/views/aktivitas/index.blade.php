@@ -7,12 +7,29 @@
 
     @php
         $target = $target ?? 1000;
+        $targetMingguan = $targetMingguan ?? 150;
+        $durasiMingguan = $durasiMingguan ?? 0;
+
         $persen = 0;
         if(isset($kaloriHariIni) && $target > 0){
             $persen = min(100, ($kaloriHariIni / $target) * 100);
         }
         $persen = round($persen, 2);
         $bgCircle = "conic-gradient(#7ed957 {$persen}%, #1f3d1f 0%)";
+
+        $persenMingguan = ($targetMingguan > 0)
+            ? min(100, ($durasiMingguan / $targetMingguan) * 100)
+            : 0;
+        $persenMingguan = round($persenMingguan, 1);
+        $sisaMingguan = max(0, $targetMingguan - $durasiMingguan);
+
+        $color = '#7ed957';
+        if ($persenMingguan < 50) {
+            $color = '#ff7675';
+        } elseif ($persenMingguan < 80) {
+            $color = '#f9ca24';
+        }
+
         $kaloriHariIni = $kaloriHariIni ?? 0;
         $targetInt = (int) $target;
     @endphp
@@ -27,6 +44,8 @@
         .top{display:flex;gap:20px;align-items:flex-start;}
         .card-container-left{display:flex;flex-direction:column;gap:20px;flex:1;}
         .card{background:#2f4f2f;border-radius:15px;padding:20px;color:white;box-shadow:0 5px 10px rgba(0,0,0,0.2);}
+        .target-weekly-row{display:flex;gap:15px;width:100%;}
+        .target-weekly-row .card{flex:1;}
         .card-log{flex:1.5;}
         .circle-wrap{display:flex;justify-content:center;margin-top:10px;}
         .circle{width:150px;height:150px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;}
@@ -44,12 +63,24 @@
         .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:999;}
         .modal-content{background:white;width:500px;margin:80px auto;padding:20px;border-radius:15px;position:relative;}
         .circle-bg{background:{{$bgCircle}};}
-
+        
         .error-input {
             border: 2px solid red !important;
             background: #ffecec !important;
         }
 
+        .progress-bar-weekly{
+            width:{{$persenMingguan}}%;
+            background:{{$color}};
+            height:100%;
+            transition:width 0.5s ease-in-out;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#1f3d1f;
+            font-weight:600;
+            font-size:10px;
+        }
     </style>
 </head>
 <body>
@@ -62,6 +93,14 @@
             <h3>Aktivitas</h3>
             <small>Pantau dan catat aktivitas harian Anda</small>
         </div>
+
+        @if ($errors->any())
+            <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:10px;margin-bottom:15px;">
+                @foreach ($errors->all() as $error)
+                    <div style="font-size: 13px;">❌ {{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
 
         @if(session('success'))
             <div style="background:#d4edda;color:#155724;padding:10px;border-radius:10px;margin-bottom:15px;">
@@ -90,13 +129,87 @@
                             min="1" max="50000" placeholder="1000" required
                             class="@error('target_kalori') error-input @enderror"
                             style="padding:8px;border-radius:8px;border:none;width:100%;margin-bottom:5px;color:black;">
+                        @error('target_kalori')
+                            <small style="color:#ff7675;font-size:11px;">{{ $message }}</small>
+                        @enderror
                         <button class="btn" style="width:100%;">Set Target Harian</button>
                     </form>
+                </div>
+
+                <div class="target-weekly-row">
+                    <div class="card">
+                        <h4>Target Aktivitas Mingguan</h4>
+                        
+                        {{-- 🧩 STEP 3 — TAMBAHKAN PESAN DEFAULT TARGET --}}
+                        @if($pakaiDefault)
+                            <small style="color:#ffcc70; display:block; text-align:center; margin-top:5px;">
+                                ⚠️ Menggunakan target default 150 menit/minggu
+                            </small>
+                        @endif
+
+                        <p style="text-align:center;margin-top:10px;font-size:18px;font-weight:600;">
+                            {{ $targetMingguan }} menit / minggu
+                        </p>
+                        <form method="POST" action="/target-mingguan/update" style="margin-top:10px;">
+                            @csrf
+                            <input 
+                                type="number" 
+                                name="target_mingguan" 
+                                value="{{ old('target_mingguan', $targetMingguan) }}"
+                                min="1"
+                                max="10080"
+                                required
+                                placeholder="150"
+                                class="@error('target_mingguan') error-input @enderror"
+                                style="padding:8px;border-radius:8px;border:none;width:100%;margin-bottom:5px;color:black;">
+                            
+                            @error('target_mingguan')
+                                <small style="color:#ff7675;font-size:11px;display:block;margin-bottom:5px;">{{ $message }}</small>
+                            @enderror
+
+                            <button class="btn" style="width:100%;">Simpan Target</button>
+                        </form>
+                        <small style="display:block;margin-top:8px;text-align:center;opacity:0.8;font-size:10px;">
+                            WHO: 150 menit/minggu
+                        </small>
+                    </div>
+
+                    <div class="card">
+                        <h4>Progress Mingguan</h4>
+                        <p style="text-align:center;font-size:13px;margin-top:10px;">
+                            Progress Mingguan Anda
+                        </p>
+                        <div style="background:#1f3d1f;border-radius:10px;height:20px;margin-top:15px;overflow:hidden;position:relative;">
+                            <div class="progress-bar-weekly">
+                                {{ $persenMingguan }}%
+                            </div>
+                        </div>
+
+                        @if($durasiMingguan == 0)
+                            <p style="text-align:center;margin-top:15px;font-size:12px;color:#ffcc70;">
+                                🔥 Minggu baru, semangat mulai olahraga!
+                            </p>
+                        @elseif($durasiMingguan < $targetMingguan)
+                            <p style="text-align:center;margin-top:15px;font-size:12px;">
+                                {{ $durasiMingguan }} / {{ $targetMingguan }} menit
+                            </p>
+                            <p style="text-align:center;font-size:11px;color:#ffcc70;">
+                                {{-- 🧩 STEP 2 — PERBAIKI WORDING --}}
+                                ⏳ Sisa {{ $sisaMingguan }} menit lagi untuk mencapai target mingguan!
+                            </p>
+                        @else
+                            <p style="text-align:center;margin-top:15px;font-size:12px;color:#7ed957;">
+                                🎉 Target mingguan tercapai!
+                            </p>
+                        @endif
+                    </div>
                 </div>
             </div>
 
             <div class="card card-log">
                 <h4>Log Aktivitas</h4>
+                
+                {{-- 🧩 STEP 4 — TAMBAHKAN ID FORM --}}
                 <form id="formAktivitas" method="POST" action="/aktivitas">
                     @csrf
                     <div class="form-grid">
@@ -166,12 +279,17 @@
                     @empty
                     <tr>
                         <td colspan="5" style="text-align:center; padding:20px; color:#888;">
+                            {{-- 🧩 STEP 5 — PESAN SAAT BELUM ADA AKTIVITAS --}}
                             Belum ada aktivitas olahraga minggu ini. Yuk, mulai aktivitas hari ini!
                         </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <div style="margin-top:15px;">
+            {{ $activities->links() }}
         </div>
     </div>
 </div>
@@ -202,6 +320,15 @@
 <script>
     var targetKalori = parseInt("{{ $targetInt }}");
 
+    document.querySelector('input[name="target_mingguan"]').addEventListener('input', function(){
+        let val = parseInt(this.value);
+        if(val < 1) this.value = 1;
+        if(val > 10080){
+            alert("Maksimal target adalah 10080 menit (1 minggu penuh)");
+            this.value = 10080;
+        }
+    });
+
     document.querySelector('input[name="target_kalori"]').addEventListener('input', function(){
         let val = parseInt(this.value);
         if(val > 50000){
@@ -210,15 +337,28 @@
         }
     });
 
+    document.addEventListener("DOMContentLoaded", function () {
+        const errorField = document.querySelector('.error-input');
+        if (errorField) {
+            errorField.focus();
+            errorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
     function hitungEstimasi() {
         var durasi = document.querySelector('input[name="durasi"]').value;
         var jenis = document.querySelector('select[name="jenis"]').value;
         var inputKalori = document.querySelector('input[name="kalori"]');
+        
         var berat = 60; 
-        var metMap = { "Lari": 9.8, "Joging": 7, "Bersepeda": 6, "Renang": 8, "Senam": 4 };
+        var metMap = {
+            "Lari": 9.8, "Joging": 7, "Bersepeda": 6, "Renang": 8, "Senam": 4
+        };
+
         var met = metMap[jenis] || 5;
         var durasiJam = durasi / 60;
         var estimasi = Math.round(met * berat * durasiJam);
+
         if(!inputKalori.value){
             inputKalori.placeholder = "Estimasi: " + (durasi ? estimasi : "Kosongkan untuk otomatis") + " kcal";
         }
@@ -244,15 +384,27 @@
         document.getElementById('mDurasi').innerText  = durasi + " menit";
         document.getElementById('mKalori').innerText  = kalori + " kcal";
         document.getElementById('mJarak').innerText   = jarak + " km";
-        var intensitas = (kalori > 400) ? "Tinggi" : (kalori > 200 ? "Sedang" : "Rendah");
+
+        var intensitas = "Rendah";
+        if(kalori > 200) intensitas = "Sedang";
+        if(kalori > 400) intensitas = "Tinggi";
         document.getElementById('mIntensitas').innerText = intensitas;
+
         var persen = ((kalori / targetKalori) * 100).toFixed(1);
         document.getElementById('mTarget').innerText = persen + "%";
         document.getElementById('deleteForm').action = "/aktivitas/" + id;
     }
 
-    function closeModal(){ document.getElementById('modalDetail').style.display = 'none'; }
-    window.onclick = function(event){ if(event.target == document.getElementById('modalDetail')) closeModal(); }
+    function closeModal(){
+        document.getElementById('modalDetail').style.display = 'none';
+    }
+
+    window.onclick = function(event){
+        var modal = document.getElementById('modalDetail');
+        if(event.target == modal){
+            closeModal();
+        }
+    }
 </script>
 
 </body>

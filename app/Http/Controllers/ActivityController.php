@@ -179,6 +179,51 @@ class ActivityController extends Controller
     }
 
     /**
+     * Update target durasi mingguan (menit).
+     * ✅ VALIDASI SESUAI USE CASE + ERROR SCENARIO
+     */
+    public function updateTargetMingguan(Request $request)
+    {
+        // 🔥 VALIDASI KETAT
+        $validated = $request->validate([
+            'target_mingguan' => 'required|integer|min:1|max:10080'
+        ], [
+            'target_mingguan.required' => 'Target aktivitas wajib diisi',
+            'target_mingguan.integer' => 'Target harus berupa angka (menit)',
+            'target_mingguan.min' => 'Target tidak boleh kurang dari 1 menit',
+            'target_mingguan.max' => 'Target maksimal 10080 menit (1 minggu penuh)'
+        ]);
+
+        $user = Auth::user();
+        $today = date('Y-m-d');
+
+        $activity = LogAktivitas::where('user_id', $user->id)
+            ->whereDate('tanggal', $today)
+            ->latest()
+            ->first();
+
+        // ✅ POSTCONDITION: SIMPAN DATA HANYA JIKA VALID
+        if ($activity) {
+            $activity->update([
+                'target_mingguan' => $validated['target_mingguan']
+            ]);
+        } else {
+            LogAktivitas::create([
+                'user_id' => $user->id,
+                'jenis' => 'Set Target',
+                'durasi' => 0,
+                'kalori' => 0,
+                'jarak' => 0,
+                'tanggal' => $today,
+                'target_kalori' => 1000,
+                'target_mingguan' => $validated['target_mingguan']
+            ]);
+        }
+
+        return back()->with('success', 'Target aktivitas mingguan berhasil disimpan');
+    }
+
+    /**
      * Menghapus aktivitas.
      */
     public function destroy($id)
