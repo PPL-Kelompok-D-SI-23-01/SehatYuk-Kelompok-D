@@ -137,6 +137,8 @@
                 </div>
 
                 <div class="target-weekly-row">
+
+                    /* Menentukan target aktivitas fisik mingguan   */
                     <div class="card">
                         <h4>Target Aktivitas Mingguan</h4>
                         
@@ -173,7 +175,7 @@
                             WHO: 150 menit/minggu
                         </small>
                     </div>
-
+                        
                     <div class="card">
                         <h4>Progress Mingguan</h4>
                         <p style="text-align:center;font-size:13px;margin-top:10px;">
@@ -225,7 +227,7 @@
                         </div>
                         <div>
                             <label>Kalori (opsional)</label>
-                            <input type="number" name="kalori" placeholder="Kosongkan untuk otomatis" style="color:black;">
+                            <input type="number" name="kalori" placFeholder="Kosongkan untuk otomatis" style="color:black;">
                         </div>
                         <div>
                             <label>Durasi (menit)</label>
