@@ -74,4 +74,37 @@ class KatalogController extends Controller
         return view('katalog.index', compact('reseps', 'favorites', 'rekom'));
     }
 
+    /**
+     * Menampilkan detail makanan dan mencatat riwayat kunjungan.
+     * 🔥 UPDATE: DENGAN ERROR HANDLING (TRY-CATCH)
+     */
+    public function detail($id)
+    {
+        try {
+            // Menggunakan findOrFail agar melempar exception jika data tidak ada
+            $resep = Resep::findOrFail($id);
+
+            if (Auth::check()) {
+                RiwayatResep::create([
+                    'user_id' => Auth::id(),
+                    'meal_id' => $resep->id
+                ]);
+            }
+
+            $isFavorite = false;
+            if (Auth::check()) {
+                $isFavorite = FavoriteResep::where('user_id', Auth::id())
+                                ->where('meal_id', $id)
+                                ->exists();
+            }
+
+            return view('katalog.detail', compact('resep', 'isFavorite'));
+
+        } catch (\Exception $e) {
+            // 🔥 SESUAI USE CASE (RESEP TIDAK ADA / ERROR LAIN)
+            return redirect('/katalog')
+                ->with('error', 'Maaf, resep ini sudah tidak tersedia.');
+        }
+    }
+
 }
