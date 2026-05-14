@@ -91,10 +91,27 @@ class ActivityController extends Controller
     {
         $user = Auth::user();
 
+        // LANGKAH 1 & 2 — VALIDASI STORE YANG DIPERBAIKI
         $request->validate([
             'jenis' => 'required',
-            'durasi' => 'required|numeric|min:1',
+            'durasi' => 'required|integer|min:1|max:720',
+            'kalori' => 'nullable|integer|min:1|max:15000',
+            'jarak' => 'nullable|numeric|min:0|max:300',
             'tanggal' => 'required|date'
+        ], [
+            'durasi.required' => 'Durasi wajib diisi',
+            'durasi.integer' => 'Durasi harus berupa angka',
+            'durasi.min' => 'Durasi minimal 1 menit',
+            'durasi.max' => 'Durasi maksimal 720 menit (12 jam)',
+
+            'kalori.integer' => 'Kalori harus berupa angka',
+            'kalori.max' => 'Kalori maksimal 15000 kcal',
+
+            'jarak.numeric' => 'Jarak harus berupa angka',
+            'jarak.max' => 'Jarak maksimal 300 km',
+
+            'tanggal.required' => 'Tanggal wajib diisi',
+            'tanggal.date' => 'Format tanggal tidak valid',
         ]);
 
         // 🔥 AMBIL DATA CLIENT (UNTUK BERAT BADAN)
@@ -180,7 +197,6 @@ class ActivityController extends Controller
 
     /**
      * Update target durasi mingguan (menit).
-     * ✅ VALIDASI SESUAI USE CASE + ERROR SCENARIO
      */
     public function updateTargetMingguan(Request $request)
     {

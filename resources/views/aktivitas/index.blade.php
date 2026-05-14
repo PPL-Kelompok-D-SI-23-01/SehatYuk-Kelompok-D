@@ -81,6 +81,46 @@
             font-weight:600;
             font-size:10px;
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pagination .page-item {
+            list-style: none;
+        }
+
+        .pagination .page-link {
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: white;
+            color: #2f4f2f;
+            text-decoration: none;
+            font-weight: 500;
+            border: 1px solid #ddd;
+            transition: 0.3s;
+        }
+
+        .pagination .page-link:hover {
+            background: #7ed957;
+            color: black;
+        }
+
+        .pagination .active .page-link {
+            background: #2f4f2f;
+            color: white;
+            border-color: #2f4f2f;
+        }
+
+        .pagination .disabled .page-link {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -125,10 +165,16 @@
                     </p>
                     <form method="POST" action="/target/update" style="margin-top:10px;">
                         @csrf
-                        <input type="number" name="target_kalori" value="{{ old('target_kalori', $target) }}" 
-                            min="1" max="50000" placeholder="1000" required
-                            class="@error('target_kalori') error-input @enderror"
-                            style="padding:8px;border-radius:8px;border:none;width:100%;margin-bottom:5px;color:black;">
+                        <input type="number"
+                               name="target_kalori"
+                               value="{{ old('target_kalori', $target) }}"
+                               min="1"
+                               max="50000"
+                               placeholder="1000"
+                               required
+                               onkeydown="return !['e','E','+','-'].includes(event.key)"
+                               class="@error('target_kalori') error-input @enderror"
+                               style="padding:8px;border-radius:8px;border:none;width:100%;margin-bottom:5px;color:black;">
                         @error('target_kalori')
                             <small style="color:#ff7675;font-size:11px;">{{ $message }}</small>
                         @enderror
@@ -136,13 +182,10 @@
                     </form>
                 </div>
 
-                <div class="target-weekly-row">
-
-                    /* Menentukan target aktivitas fisik mingguan   */
+                <div class="target-weekly-row">     
                     <div class="card">
                         <h4>Target Aktivitas Mingguan</h4>
                         
-                        {{-- 🧩 STEP 3 — TAMBAHKAN PESAN DEFAULT TARGET --}}
                         @if($pakaiDefault)
                             <small style="color:#ffcc70; display:block; text-align:center; margin-top:5px;">
                                 ⚠️ Menggunakan target default 150 menit/minggu
@@ -156,7 +199,8 @@
                             @csrf
                             <input 
                                 type="number" 
-                                name="target_mingguan" 
+                                name="target_mingguan"
+                                onkeydown="return !['e','E','+','-'].includes(event.key)"
                                 value="{{ old('target_mingguan', $targetMingguan) }}"
                                 min="1"
                                 max="10080"
@@ -196,7 +240,6 @@
                                 {{ $durasiMingguan }} / {{ $targetMingguan }} menit
                             </p>
                             <p style="text-align:center;font-size:11px;color:#ffcc70;">
-                                {{-- 🧩 STEP 2 — PERBAIKI WORDING --}}
                                 ⏳ Sisa {{ $sisaMingguan }} menit lagi untuk mencapai target mingguan!
                             </p>
                         @else
@@ -211,7 +254,6 @@
             <div class="card card-log">
                 <h4>Log Aktivitas</h4>
                 
-                {{-- 🧩 STEP 4 — TAMBAHKAN ID FORM --}}
                 <form id="formAktivitas" method="POST" action="/aktivitas">
                     @csrf
                     <div class="form-grid">
@@ -227,15 +269,35 @@
                         </div>
                         <div>
                             <label>Kalori (opsional)</label>
-                            <input type="number" name="kalori" placFeholder="Kosongkan untuk otomatis" style="color:black;">
+                            <input type="number"
+                                   name="kalori"
+                                   min="1"
+                                   max="15000"
+                                   placeholder="Kosongkan untuk otomatis"
+                                   onkeydown="return !['e','E','+','-'].includes(event.key)"
+                                   style="color:black;">
                         </div>
                         <div>
                             <label>Durasi (menit)</label>
-                            <input type="number" name="durasi" placeholder="30" min="1" required style="color:black;">
+                            <input type="number"
+                                   name="durasi"
+                                   placeholder="30"
+                                   min="1"
+                                   max="720"
+                                   required
+                                   onkeydown="return !['e','E','+','-'].includes(event.key)"
+                                   style="color:black;">
                         </div>
                         <div>
                             <label>Jarak (km)</label>
-                            <input type="number" step="0.1" name="jarak" placeholder="4.5" style="color:black;">
+                            <input type="number"
+                                   step="0.1"
+                                   name="jarak"
+                                   placeholder="4.5"
+                                   min="0"
+                                   max="500"
+                                   onkeydown="return !['e','E','+','-'].includes(event.key)"
+                                   style="color:black;">
                         </div>
                         <div style="grid-column:span 2;">
                             <label>Tanggal</label>
@@ -281,7 +343,6 @@
                     @empty
                     <tr>
                         <td colspan="5" style="text-align:center; padding:20px; color:#888;">
-                            {{-- 🧩 STEP 5 — PESAN SAAT BELUM ADA AKTIVITAS --}}
                             Belum ada aktivitas olahraga minggu ini. Yuk, mulai aktivitas hari ini!
                         </td>
                     </tr>
@@ -291,7 +352,7 @@
         </div>
 
         <div style="margin-top:15px;">
-            {{ $activities->links() }}
+            {{ $activities->onEachSide(1)->links('pagination::bootstrap-5') }}
         </div>
     </div>
 </div>
@@ -336,6 +397,15 @@
         if(val > 50000){
             alert("Maksimal kalori harian adalah 50.000 kcal!");
             this.value = 50000;
+        }
+    });
+
+    // Validasi Durasi Harian di Form Log Aktivitas
+    document.querySelector('input[name="durasi"]').addEventListener('input', function(){
+        let val = parseInt(this.value);
+        if(val > 720){
+            alert("Maksimal durasi harian adalah 720 menit (12 jam)");
+            this.value = 720;
         }
     });
 
