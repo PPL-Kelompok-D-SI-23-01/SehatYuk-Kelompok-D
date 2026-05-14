@@ -113,6 +113,121 @@ class AdminController extends Controller
     }
 
     // ==========================================
+    // 🔥 KELOLA RESEP (RESEPS)
+    // ==========================================
+
+    public function resep()
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+        return redirect()->route('admin', ['tab' => 'resep']);
+    }
+
+    public function store(Request $request)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'nama_makanan' => 'required',
+            'kategori' => 'nullable',
+            'protein' => 'required|numeric',
+            'karbohidrat' => 'required|numeric',
+            'lemak' => 'required|numeric',
+            'gi' => 'nullable|in:rendah,sedang,tinggi',
+            'tanggal' => 'required|date',
+            'deskripsi' => 'nullable',
+            'bahan' => 'nullable',
+            'langkah' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'waktu' => 'nullable|integer|min:1',
+            'kesulitan' => 'nullable|in:Mudah,Sedang,Sulit',
+            'porsi' => 'nullable|integer|min:1',
+        ]);
+
+        $data['kalori'] = ($data['karbohidrat'] * 4) + ($data['protein'] * 4) + ($data['lemak'] * 9);
+
+        if (!$request->gi) {
+            if ($data['karbohidrat'] < 20) {
+                $data['gi'] = 'rendah';
+            } elseif ($data['karbohidrat'] <= 40) {
+                $data['gi'] = 'sedang';
+            } else {
+                $data['gi'] = 'tinggi';
+            }
+        }
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('resep', 'public');
+        }
+
+        $data['user_id'] = Auth::id();
+
+        Resep::create($data);
+
+        return redirect()->route('admin', ['tab' => 'resep'])->with('success', 'Resep berhasil ditambahkan');
+    }
+
+    public function update(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $resep = Resep::findOrFail($id);
+
+        $data = $request->validate([
+            'nama_makanan' => 'required',
+            'kategori' => 'nullable',
+            'protein' => 'required|numeric',
+            'karbohidrat' => 'required|numeric',
+            'lemak' => 'required|numeric',
+            'gi' => 'nullable|in:rendah,sedang,tinggi',
+            'tanggal' => 'required|date',
+            'deskripsi' => 'nullable',
+            'bahan' => 'nullable',
+            'langkah' => 'nullable',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'waktu' => 'nullable|integer|min:1',
+            'kesulitan' => 'nullable|in:Mudah,Sedang,Sulit',
+            'porsi' => 'nullable|integer|min:1',
+        ]);
+
+        $data['kalori'] = ($data['karbohidrat'] * 4) + ($data['protein'] * 4) + ($data['lemak'] * 9);
+
+        if (!$request->gi) {
+            if ($data['karbohidrat'] < 20) {
+                $data['gi'] = 'rendah';
+            } elseif ($data['karbohidrat'] <= 40) {
+                $data['gi'] = 'sedang';
+            } else {
+                $data['gi'] = 'tinggi';
+            }
+        }
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('resep', 'public');
+        }
+
+        $resep->update($data);
+
+        return redirect()->route('admin', ['tab' => 'resep'])->with('success', 'Resep berhasil diupdate');
+    }
+
+    public function destroy($id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        Resep::findOrFail($id)->delete();
+
+        return redirect()->route('admin', ['tab' => 'resep'])->with('success', 'Resep berhasil dihapus');
+    }
+
+    // ==========================================
     // 🔥 KELOLA USER
     // ==========================================
 
