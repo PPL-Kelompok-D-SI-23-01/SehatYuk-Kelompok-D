@@ -155,6 +155,63 @@
             </div>
         </div>
 
+        {{-- TAB PENGGUNA --}}
+        <div id="pengguna" class="section active">
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Umur</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($users as $user)
+                        <tr>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->client->umur ?? '-' }}</td>
+                            <td class="action">
+                                <button class="edit" data-id="{{ $user->id }}" onclick="showUser(this.dataset.id)">👁</button>
+                                <form action="/admin/user/{{ $user->id }}" method="POST" style="display: inline;">
+                                    @csrf @method('DELETE')
+                                    <button onclick="return confirm('Yakin hapus user ini?')" class="delete">🗑</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
+            {{-- PAGINATION PENGGUNA --}}
+            @if($users->hasPages())
+            <div class="custom-pagination">
+                @if($users->onFirstPage())
+                    <span class="disabled">‹ Previous</span>
+                @else
+                    <a href="{{ $users->previousPageUrl() }}&tab=pengguna">‹ Previous</a>
+                @endif
+
+                @for($i = 1; $i <= $users->lastPage(); $i++)
+                    @if($i == $users->currentPage())
+                        <span class="active">{{ $i }}</span>
+                    @else
+                        <a href="{{ $users->url($i) }}&tab=pengguna">{{ $i }}</a>
+                    @endif
+                @endfor
+
+                @if($users->hasMorePages())
+                    <a href="{{ $users->nextPageUrl() }}&tab=pengguna">Next ›</a>
+                @else
+                    <span class="disabled">Next ›</span>
+                @endif
+            </div>
+            @endif
+        </div>
+
         {{-- TAB ARTIKEL --}}
         <div id="artikel" class="section">
             <div class="table">

@@ -113,6 +113,21 @@ class AdminController extends Controller
     }
 
     // ==========================================
+    // 🔥 KELOLA USER
+    // ==========================================
+
+    public function deleteUser($id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        User::findOrFail($id)->delete();
+
+        return redirect()->route('admin', ['tab' => 'pengguna'])->with('success', 'User berhasil dihapus');
+    }
+
+    // ==========================================
     // 🔥 KELOLA ARTIKEL & VIDEO
     // ==========================================
 
