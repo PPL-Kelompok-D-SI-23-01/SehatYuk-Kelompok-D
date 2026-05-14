@@ -269,6 +269,92 @@
             </div>
             @endif
         </div>
+
+        {{-- TAB RESEP --}}
+        <div id="resep" class="section">
+            <div class="table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Kategori</th>
+                            <th>GI</th>
+                            <th>Kalori</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($reseps as $m)
+                        <tr>
+                            <td>{{ $m->nama_makanan }}</td>
+                            <td><span style="background:#7ed957; color:#fff; padding:2px 8px; border-radius:5px; font-size:11px;">{{ $m->kategori ?? 'Lainnya' }}</span></td>
+                            <td>
+                                @if($m->gi)
+                                    @if($m->gi == 'rendah')
+                                        <span style="font-weight:bold; color: green;">{{ ucfirst($m->gi) }}</span>
+                                    @elseif($m->gi == 'sedang')
+                                        <span style="font-weight:bold; color: orange;">{{ ucfirst($m->gi) }}</span>
+                                    @else
+                                        <span style="font-weight:bold; color: red;">{{ ucfirst($m->gi) }}</span>
+                                    @endif
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>{{ $m->kalori }} kcal</td>
+                            <td class="action">
+                                <button class="edit" onclick="editResep(this)"
+                                    data-id="{{ $m->id }}" 
+                                    data-nama="{{ $m->nama_makanan }}"
+                                    data-kategori="{{ $m->kategori }}"
+                                    data-gi="{{ $m->gi }}"
+                                    data-kalori="{{ $m->kalori }}" 
+                                    data-protein="{{ $m->protein }}"
+                                    data-karbohidrat="{{ $m->karbohidrat }}" 
+                                    data-lemak="{{ $m->lemak }}"
+                                    data-tanggal="{{ $m->tanggal }}" 
+                                    data-deskripsi="{{ $m->deskripsi }}"
+                                    data-bahan="{{ $m->bahan }}" 
+                                    data-langkah="{{ $m->langkah }}"
+                                    data-waktu="{{ $m->waktu }}"
+                                    data-kesulitan="{{ $m->kesulitan }}"
+                                    data-porsi="{{ $m->porsi }}">✏</button>
+                                <form action="/admin/resep/{{ $m->id }}" method="POST" style="display: inline;">
+                                    @csrf @method('DELETE')
+                                    <button onclick="return confirm('Yakin hapus resep ini?')" class="delete">🗑</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- PAGINATION RESEP --}}
+            @if($reseps->hasPages())
+            <div class="custom-pagination">
+                @if($reseps->onFirstPage())
+                    <span class="disabled">‹ Previous</span>
+                @else
+                    <a href="{{ $reseps->previousPageUrl() }}&tab=resep">‹ Previous</a>
+                @endif
+
+                @for($i = 1; $i <= $reseps->lastPage(); $i++)
+                    @if($i == $reseps->currentPage())
+                        <span class="active">{{ $i }}</span>
+                    @else
+                        <a href="{{ $reseps->url($i) }}&tab=resep">{{ $i }}</a>
+                    @endif
+                @endfor
+
+                @if($reseps->hasMorePages())
+                    <a href="{{ $reseps->nextPageUrl() }}&tab=resep">Next ›</a>
+                @else
+                    <span class="disabled">Next ›</span>
+                @endif
+            </div>
+            @endif
+        </div>
     </div>
 </div>
 
