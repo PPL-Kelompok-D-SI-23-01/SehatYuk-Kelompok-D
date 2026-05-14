@@ -42,17 +42,23 @@ class ProfileController extends Controller
             'tanggal_lahir' => 'nullable|date',
             'gender' => 'required|in:Pria,Wanita',
             'negara' => 'nullable|string|max:100',
-            'no_hp' => 'nullable|string|max:20',
+            'no_hp' => 'nullable|digits_between:10,14',
         ], [
             // 🔥 ERROR MESSAGE SESUAI USE CASE
             'name.required' => 'Nama wajib diisi',
+
             'umur.required' => 'Umur wajib diisi',
             'umur.integer' => 'Umur harus berupa angka',
+
             'tinggi.required' => 'Tinggi wajib diisi',
             'tinggi.integer' => 'Tinggi harus berupa angka',
+
             'berat.required' => 'Berat wajib diisi',
             'berat.integer' => 'Berat harus berupa angka',
+
             'gender.required' => 'Gender wajib dipilih',
+
+            'no_hp.digits_between' => 'Nomor HP harus terdiri dari 10 sampai 14 digit',
         ]);
 
         // 🔥 UPDATE DATA USER

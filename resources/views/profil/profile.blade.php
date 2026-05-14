@@ -96,16 +96,17 @@
             color: #666;
         }
 
-        .input-group input, select {
+        .input-group input, .input-group select {
             padding: 10px;
             border-radius: 8px;
             border: 1px solid transparent;
             background: #e9e9e9;
             transition: all 0.3s ease;
             outline: none;
+            width: 100%;
         }
 
-        .input-group input:focus, select:focus {
+        .input-group input:focus, .input-group select:focus {
             background: #fff;
             border-color: #a8c39e;
         }
@@ -204,7 +205,13 @@
                 {{-- UMUR --}}
                 <div class="input-group">
                     <label>Umur</label>
-                    <input type="number" name="umur" value="{{ old('umur', $user->client->umur ?? '') }}" class="@error('umur') error-input @enderror">
+                    <input type="number"
+                           name="umur"
+                           min="1"
+                           max="120"
+                           onkeydown="return !['e','E','+','-'].includes(event.key)"
+                           value="{{ old('umur', $user->client->umur ?? '') }}"
+                           class="@error('umur') error-input @enderror">
                     @error('umur')
                         <small style="color:red">{{ $message }}</small>
                     @enderror
@@ -226,7 +233,17 @@
                 {{-- NEGARA --}}
                 <div class="input-group">
                     <label>Negara</label>
-                    <input type="text" name="negara" value="{{ old('negara', $user->client->negara ?? '') }}" class="@error('negara') error-input @enderror">
+                    <select name="negara" class="@error('negara') error-input @enderror">
+                        <option value="">Pilih Negara</option>
+                        @foreach(config('countries') as $country)
+                            <option 
+                                value="{{ $country['name'] }}"
+                                {{ old('negara', $user->client->negara ?? '') == $country['name'] ? 'selected' : '' }}
+                            >
+                                {{ $country['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
                     @error('negara')
                         <small style="color:red">{{ $message }}</small>
                     @enderror
@@ -235,7 +252,44 @@
                 {{-- NO HP --}}
                 <div class="input-group">
                     <label>Nomor HP</label>
-                    <input type="text" name="no_hp" value="{{ old('no_hp', $user->client->no_hp ?? '') }}" class="@error('no_hp') error-input @enderror">
+                    <div style="display:flex; gap:10px;">
+                        
+                        {{-- SELECT KODE NEGARA --}}
+                        <select 
+                            id="phoneCodeSelect"
+                            name="kode_negara"
+                            style="
+                                width:220px;
+                                background:#e9e9e9;
+                                border:none;
+                                border-radius:8px;
+                                padding:10px;
+                                font-weight:500;
+                            "
+                        >
+                            @foreach(config('countries') as $country)
+                                <option value="{{ $country['code'] }}">
+                                    {{ $country['name'] }} ({{ $country['code'] }})
+                                </option>
+                            @endforeach
+                        </select>
+
+                        {{-- INPUT NOMOR --}}
+                        <input 
+                            type="text"
+                            name="no_hp"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            minlength="10"
+                            maxlength="14"
+                            onkeydown="return !['e','E','+','-'].includes(event.key)"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                            value="{{ old('no_hp', $user->client->no_hp ?? '') }}"
+                            class="@error('no_hp') error-input @enderror"
+                            placeholder="8123456789"
+                            style="flex:1;"
+                        >
+                    </div>
                     @error('no_hp')
                         <small style="color:red">{{ $message }}</small>
                     @enderror
@@ -255,7 +309,13 @@
                 {{-- BERAT --}}
                 <div class="input-group">
                     <label>Berat Badan (kg)</label>
-                    <input type="number" name="berat" value="{{ old('berat', $user->client->berat ?? '') }}" class="@error('berat') error-input @enderror">
+                    <input type="number"
+                           name="berat"
+                           min="20"
+                           max="300"
+                           onkeydown="return !['e','E','+','-'].includes(event.key)"
+                           value="{{ old('berat', $user->client->berat ?? '') }}"
+                           class="@error('berat') error-input @enderror">
                     @error('berat')
                         <small style="color:red">{{ $message }}</small>
                     @enderror
@@ -264,7 +324,13 @@
                 {{-- TINGGI --}}
                 <div class="input-group">
                     <label>Tinggi Badan (cm)</label>
-                    <input type="number" name="tinggi" value="{{ old('tinggi', $user->client->tinggi ?? '') }}" class="@error('tinggi') error-input @enderror">
+                    <input type="number"
+                           name="tinggi"
+                           min="50"
+                           max="250"
+                           onkeydown="return !['e','E','+','-'].includes(event.key)"
+                           value="{{ old('tinggi', $user->client->tinggi ?? '') }}"
+                           class="@error('tinggi') error-input @enderror">
                     @error('tinggi')
                         <small style="color:red">{{ $message }}</small>
                     @enderror
