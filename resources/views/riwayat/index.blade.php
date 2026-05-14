@@ -58,7 +58,9 @@
         }
 
         /* FORM ELEMENTS */
-        input[type="text"], select {
+        input[type="text"],
+        input[type="date"],
+        select {
             padding: 10px 15px;
             border-radius: 12px;
             border: 1px solid #d0d7cc;
@@ -70,6 +72,7 @@
         }
 
         input[type="text"]:focus,
+        input[type="date"]:focus,
         select:focus {
             border-color: #7ed957;
             box-shadow: 0 0 0 3px rgba(126, 217, 87, 0.1);
@@ -241,20 +244,42 @@
         <div class="header">📊 Riwayat & Laporan Aktivitas</div>
 
         <div class="action-bar">
-            <form method="GET" action="/riwayat" class="filter-form">
+            {{-- LANGKAH 1 — TAMBAHKAN ID filterForm --}}
+            <form method="GET" action="/riwayat" class="filter-form" id="filterForm">
+
+                {{-- SEARCH — LANGKAH 2 — TAMBAHKAN ID searchInput --}}
                 <input 
                     type="text" 
+                    id="searchInput"
                     name="search"
                     value="{{ request('search') }}"
-                    placeholder="Cari data riwayat..."
+                    placeholder="Cari aktivitas, durasi, kalori, jarak..."
                 >
 
-                <select name="filter" onchange="this.form.submit()">
-                    <option value="harian" {{ request('filter')=='harian'?'selected':'' }}>Harian</option>
-                    <option value="mingguan" {{ request('filter')=='mingguan' || !request('filter') ?'selected':'' }}>Mingguan</option>
-                    <option value="bulanan" {{ request('filter')=='bulanan'?'selected':'' }}>Bulanan</option>
+                {{-- FILTER WAKTU — LANGKAH 3 — TAMBAHKAN ID filterSelect --}}
+                <select name="filter" id="filterSelect">
+                    <option value="harian" {{ request('filter')=='harian'?'selected':'' }}>
+                        Harian
+                    </option>
+
+                    <option value="mingguan" {{ request('filter')=='mingguan' || !request('filter') ?'selected':'' }}>
+                        Mingguan
+                    </option>
+
+                    <option value="bulanan" {{ request('filter')=='bulanan'?'selected':'' }}>
+                        Bulanan
+                    </option>
                 </select>
-                <button type="submit" class="btn btn-gray">Filter</button>
+
+                {{-- FILTER TANGGAL — LANGKAH 4 — TAMBAHKAN ID tanggalInput --}}
+                <input 
+                    type="date"
+                    id="tanggalInput"
+                    name="tanggal"
+                    value="{{ request('tanggal') }}"
+                >
+
+                {{-- LANGKAH 5 — TOMBOL FILTER SUDAH DIHAPUS --}}
             </form>
 
             <button class="btn btn-green" onclick="openPdf()">
@@ -301,23 +326,10 @@
         </div>
 
         <div style="margin-top: 20px;">
-            {{ $logs->links() }}
+            {{ $logs->onEachSide(1)->links('pagination::bootstrap-5') }}
         </div>
     </div>
 
-</div>
-
-<div id="pdfModal" class="modal-overlay">
-    <div style="width:85%; height:90%; background:white; border-radius:20px; overflow:hidden; display:flex; flex-direction:column;">
-        <div style="padding:15px 25px; background:#bcd3b0; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #cbd5c0;">
-            <b style="font-size:16px;">Preview Laporan PDF</b>
-            <button onclick="closePdf()" class="close-modal">&times;</button>
-        </div>
-        <iframe id="pdfFrame" style="flex:1; border:none; width:100%;"></iframe>
-        <div style="padding:15px; background:#f9f9f9; text-align:right;">
-            <button class="btn btn-gray" onclick="closePdf()">Tutup Preview</button>
-        </div>
-    </div>
 </div>
 
 <div id="detailModal" class="modal-overlay">
@@ -344,37 +356,30 @@
     const targetKalori = parseInt('{{ $targetKaloriMasuk ?? 2000 }}');
 
     function openPdf() {
-        const filter = "{{ request('filter', 'mingguan') }}";
-        const search = "{{ request('search', '') }}";
-        const url = `/riwayat/pdf?filter=${filter}&search=${search}`;
-        document.getElementById('pdfFrame').src = url;
-        document.getElementById('pdfModal').style.display = 'flex';
+        const filter = encodeURIComponent("{{ request('filter', 'mingguan') }}");
+        const search = encodeURIComponent("{{ request('search', '') }}");
+        const tanggal = encodeURIComponent("{{ request('tanggal', '') }}");
+
+        const url = `/riwayat/pdf?filter=${filter}&search=${search}&tanggal=${tanggal}`;
+
+        window.open(url, '_blank');
     }
 
-    function closePdf() {
-        document.getElementById('pdfModal').style.display = 'none';
-        document.getElementById('pdfFrame').src = '';
-    }
-
-    // 🔥 FUNCTION JS UPDATED: DARI TANGGAL JADI ID
     function showDetail(id) {
         document.getElementById('detailContent').innerHTML = '<p style="text-align:center; padding:20px;">Mengambil data...</p>';
         document.getElementById('detailModal').style.display = 'flex';
 
-        // 🔥 FETCH UPDATED: DARI TANGGAL JADI ID
         fetch(`/riwayat/detail/${id}`)
         .then(res => res.json())
         .then(data => {
             let html = '';
 
-            // SEKSI RINGKASAN NUTRISI
             html += `<h4>📊 Ringkasan Konsumsi</h4>
             <div class="detail-item"><span>🔥 Kalori</span> <b>${data.total.kalori.toLocaleString()} / ${targetKalori.toLocaleString()} kcal</b></div>
             <div class="detail-item"><span>🥩 Protein</span> <b>${data.total.protein} gr</b></div>
             <div class="detail-item"><span>🍞 Karbohidrat</span> <b>${data.total.karbo} gr</b></div>
             <div class="detail-item"><span>🥑 Lemak</span> <b>${data.total.lemak} gr</b></div>`;
 
-            // SEKSI DAFTAR MAKANAN
             html += `<h4>🍽️ Daftar Makanan</h4>`;
             if(data.makanan.length === 0){
                 html += `<p style="font-size:12px; color:#888; font-style:italic;">Belum ada makanan yang dicatat.</p>`;
@@ -395,7 +400,6 @@
                 });
             }
 
-            // SEKSI AKTIVITAS FISIK
             html += `<h4>🏃 Aktivitas Fisik</h4>`;
             if(data.aktivitas.length === 0){
                 html += `<p style="font-size:12px; color:#888; font-style:italic;">Tidak ada aktivitas fisik yang dicatat.</p>`;
@@ -459,6 +463,33 @@
                 x: { grid: { display: false } }
             }
         }
+    });
+
+    // LANGKAH 6 — AUTO FILTER JAVASCRIPT
+    const filterForm = document.getElementById('filterForm');
+    const filterSelect = document.getElementById('filterSelect');
+    const tanggalInput = document.getElementById('tanggalInput');
+    const searchInput = document.getElementById('searchInput');
+
+    // AUTO RELOAD SELECT FILTER
+    filterSelect.addEventListener('change', () => {
+        filterForm.submit();
+    });
+
+    // AUTO RELOAD TANGGAL
+    tanggalInput.addEventListener('change', () => {
+        filterForm.submit();
+    });
+
+    // AUTO SEARCH DENGAN DELAY (DEBOUNCE)
+    let searchTimeout;
+
+    searchInput.addEventListener('keyup', () => {
+        clearTimeout(searchTimeout);
+
+        searchTimeout = setTimeout(() => {
+            filterForm.submit();
+        }, 700);
     });
 </script>
 

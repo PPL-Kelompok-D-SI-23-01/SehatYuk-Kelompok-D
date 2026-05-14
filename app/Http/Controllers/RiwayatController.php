@@ -19,19 +19,36 @@ class RiwayatController extends Controller
         $user = Auth::user();
         $user->load('client');
 
+        // LANGKAH 7 — TAMBAHKAN VARIABLE TANGGAL
         $filter = $request->filter ?? 'mingguan';
         $search = $request->search;
+        $tanggal = $request->tanggal;
 
-        // 🔥 1. TENTUKAN RANGE TANGGAL BERDASARKAN FILTER (DINAMIS)
+        // 🔥 1. TENTUKAN RANGE TANGGAL BERDASARKAN FILTER (DINAMIS) — UPDATE TERBARU
         if ($filter == 'harian') {
-            $start = Carbon::today();
-            $end = Carbon::today();
+            if ($tanggal) {
+                $start = Carbon::parse($tanggal);
+                $end = Carbon::parse($tanggal);
+            } else {
+                $start = Carbon::today();
+                $end = Carbon::today();
+            }
         } elseif ($filter == 'bulanan') {
-            $start = Carbon::now()->startOfMonth();
-            $end = Carbon::now()->endOfMonth();
+            if ($tanggal) {
+                $start = Carbon::parse($tanggal)->startOfMonth();
+                $end = Carbon::parse($tanggal)->endOfMonth();
+            } else {
+                $start = Carbon::now()->startOfMonth();
+                $end = Carbon::now()->endOfMonth();
+            }
         } else { // default mingguan
-            $start = Carbon::now()->startOfWeek(Carbon::MONDAY);
-            $end = Carbon::now()->endOfWeek(Carbon::SUNDAY);
+            if ($tanggal) {
+                $start = Carbon::parse($tanggal)->startOfWeek(Carbon::MONDAY);
+                $end = Carbon::parse($tanggal)->endOfWeek(Carbon::SUNDAY);
+            } else {
+                $start = Carbon::now()->startOfWeek(Carbon::MONDAY);
+                $end = Carbon::now()->endOfWeek(Carbon::SUNDAY);
+            }
         }
 
         // 🔥 2. HITUNG TARGET KALORI (BMR) UNTUK SINKRONISASI GRAFIK
@@ -60,17 +77,33 @@ class RiwayatController extends Controller
         $query = LogAktivitas::where('user_id', $user->id)
             ->whereBetween('tanggal', [$start, $end]);
 
+        // LANGKAH 9 — GANTI QUERY SEARCH
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('jenis', 'like', "%$search%")
-                  ->orWhere('tanggal', 'like', "%$search%");
+                  ->orWhere('durasi', 'like', "%$search%")
+                  ->orWhere('kalori', 'like', "%$search%")
+                  ->orWhere('jarak', 'like', "%$search%");
             });
+        }
+
+        // LANGKAH 10 — TAMBAHKAN FILTER PERTANGGAL
+        if ($tanggal) {
+            $query->whereDate('tanggal', $tanggal);
         }
 
         $logs = $query->latest('tanggal')->paginate(5)->withQueryString();
 
-        $aktivitasGrafik = LogAktivitas::where('user_id', $user->id)
-            ->whereBetween('tanggal', [$start, $end])
+        // --- UPDATE QUERY GRAFIK ---
+        $aktivitasGrafikQuery = LogAktivitas::where('user_id', $user->id)
+            ->whereBetween('tanggal', [$start, $end]);
+
+        // FILTER TANGGAL UNTUK GRAFIK
+        if ($tanggal) {
+            $aktivitasGrafikQuery->whereDate('tanggal', $tanggal);
+        }
+
+        $aktivitasGrafik = $aktivitasGrafikQuery
             ->selectRaw('DATE(tanggal) as tanggal, SUM(kalori) as total_kalori')
             ->groupBy(DB::raw('DATE(tanggal)'))
             ->get();
@@ -96,9 +129,15 @@ class RiwayatController extends Controller
             $aktivitasHari = $aktivitasGrafik->firstWhere('tanggal', $date->toDateString());
             $dataKalori[] = $aktivitasHari->total_kalori ?? 0;
 
-            $kaloriMasuk = DashboardHarian::where('user_id', $user->id)
-                ->whereDate('tanggal', $date)
-                ->sum('kalori_masuk') ?? 0;
+            // --- UPDATE QUERY KALORI MASUK ---
+            $kaloriQuery = DashboardHarian::where('user_id', $user->id)
+                ->whereDate('tanggal', $date);
+
+            if ($tanggal) {
+                $kaloriQuery->whereDate('tanggal', $tanggal);
+            }
+
+            $kaloriMasuk = $kaloriQuery->sum('kalori_masuk') ?? 0;
             $dataKaloriMasuk[] = $kaloriMasuk;
 
             $dataNutrisi[] = $targetKaloriMasuk > 0 
@@ -170,31 +209,62 @@ class RiwayatController extends Controller
         $user = Auth::user();
         $filter = $request->filter ?? 'mingguan';
         $search = $request->search;
+        $tanggal = $request->tanggal; // Mendukung filter tanggal di PDF
 
+        // Sinkronisasi range tanggal untuk PDF agar sama dengan tampilan Index
         if ($filter == 'harian') {
-            $start = Carbon::today();
-            $end = Carbon::today();
+            if ($tanggal) {
+                $start = Carbon::parse($tanggal);
+                $end = Carbon::parse($tanggal);
+            } else {
+                $start = Carbon::today();
+                $end = Carbon::today();
+            }
         } elseif ($filter == 'bulanan') {
-            $start = Carbon::now()->startOfMonth();
-            $end = Carbon::now()->endOfMonth();
+            if ($tanggal) {
+                $start = Carbon::parse($tanggal)->startOfMonth();
+                $end = Carbon::parse($tanggal)->endOfMonth();
+            } else {
+                $start = Carbon::now()->startOfMonth();
+                $end = Carbon::now()->endOfMonth();
+            }
         } else {
-            $start = Carbon::now()->startOfWeek(Carbon::MONDAY);
-            $end = Carbon::now()->endOfWeek(Carbon::SUNDAY);
+            if ($tanggal) {
+                $start = Carbon::parse($tanggal)->startOfWeek(Carbon::MONDAY);
+                $end = Carbon::parse($tanggal)->endOfWeek(Carbon::SUNDAY);
+            } else {
+                $start = Carbon::now()->startOfWeek(Carbon::MONDAY);
+                $end = Carbon::now()->endOfWeek(Carbon::SUNDAY);
+            }
         }
 
         $query = LogAktivitas::where('user_id', $user->id)
             ->whereBetween('tanggal', [$start, $end]);
 
         if ($search) {
-            $query->where('jenis', 'like', "%$search%");
+            $query->where(function($q) use ($search) {
+                $q->where('jenis', 'like', "%$search%")
+                  ->orWhere('durasi', 'like', "%$search%")
+                  ->orWhere('kalori', 'like', "%$search%")
+                  ->orWhere('jarak', 'like', "%$search%");
+            });
+        }
+
+        if ($tanggal) {
+            $query->whereDate('tanggal', $tanggal);
         }
 
         $logs = $query->latest()->get();
 
         $makanan = DashboardHarian::with('resep')
             ->where('user_id', $user->id)
-            ->whereBetween('tanggal', [$start, $end])
-            ->get();
+            ->whereBetween('tanggal', [$start, $end]);
+        
+        if ($tanggal) {
+            $makanan->whereDate('tanggal', $tanggal);
+        }
+        
+        $makanan = $makanan->get();
 
         $totalDurasi = $logs->sum('durasi');
         $totalJarak = $logs->sum('jarak');
