@@ -129,11 +129,6 @@
 <div class="header">
     <table>
         <tr>
-            <td width="70">
-                @if(file_exists(public_path('logo.png')))
-                    <img src="{{ public_path('logo.png') }}" width="60">
-                @endif
-            </td>
             <td>
                 <div class="title">Laporan Aktivitas & Konsumsi</div>
                 <div class="subtitle">
@@ -197,7 +192,7 @@
                 <td class="text-left">{{ $log->jenis }}</td>
                 <td class="text-center">{{ $log->durasi }} min</td>
                 <td class="text-right">{{ number_format($log->kalori) }}</td>
-                <td class="text-right">{{ number_format($log->jarak, 1) }} km</td>
+                <td class="text-right">{{ number_format($log->jarak ?? 0, 1) }} km</td>
             </tr>
             @endforeach
         </tbody>
@@ -206,7 +201,7 @@
                 <td colspan="2" class="text-left">RINGKASAN AKTIVITAS</td>
                 <td class="text-center">{{ $totalDurasi }} min</td>
                 <td class="text-right">{{ number_format($totalKaloriTerbakar) }} kcal</td>
-                <td class="text-right">{{ number_format($totalJarak, 1) }} km</td>
+                <td class="text-right">{{ number_format($totalJarak ?? 0, 1) }} km</td>
             </tr>
         </tfoot>
     </table>
@@ -230,7 +225,7 @@
             @foreach($makanan as $item)
             <tr>
                 <td class="text-center">{{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}</td>
-                <td class="text-left">{{ $item->resep->nama_makanan ?? 'Menu' }}</td>
+                <td class="text-left">{{ optional($item->resep)->nama_makanan ?? 'Menu' }}</td>
                 <td class="text-right">{{ number_format($item->kalori_masuk) }}</td>
                 <td class="text-right">{{ $item->protein }}</td>
                 <td class="text-right">{{ $item->karbo }}</td>
