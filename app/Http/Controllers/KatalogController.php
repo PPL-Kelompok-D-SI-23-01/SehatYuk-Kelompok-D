@@ -108,6 +108,47 @@ class KatalogController extends Controller
     }
 
     /**
+     * SEARCH REKOMENDASI (BACKEND) via AJAX
+     * 🔥 UPDATE: MENGGUNAKAN VALIDASI + ERROR FLOW SESUAI USE CASE
+     */
+    public function search(Request $request)
+    {
+        try {
+            $keyword = strtolower($request->search);
+            $kategori = $request->kategori;
+
+            $query = Resep::query();
+
+            // 🔍 FILTER KEYWORD (Nama Makanan & Bahan)
+            if ($keyword) {
+                $query->where(function($q) use ($keyword) {
+                    $q->whereRaw('LOWER(nama_makanan) LIKE ?', ["%$keyword%"])
+                      ->orWhereRaw('LOWER(bahan) LIKE ?', ["%$keyword%"]);
+                });
+            }
+
+            // 🔍 FILTER KATEGORI
+            if ($kategori && $kategori != 'all' && $kategori != 'Semua') {
+                $query->where('kategori', $kategori);
+            }
+
+            $reseps = $query->latest()->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $reseps
+            ]);
+
+        } catch (\Exception $e) {
+            // 🔥 HANDLE ERROR KONEKSI / SERVER
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat data. Periksa koneksi internet Anda.'
+            ], 500);
+        }
+    }
+
+    /**
      * FITUR FAVORITE (MODERN TOGGLE via AJAX)
      */
     public function toggleFavorite($id)
