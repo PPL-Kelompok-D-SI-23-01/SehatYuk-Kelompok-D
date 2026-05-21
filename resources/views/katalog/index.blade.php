@@ -56,6 +56,23 @@
         .protein{background:#ffd54f;}
         .lemak{background:#64b5f6;}
 
+        .search-bar{
+            display:flex;
+            gap:10px;
+            margin-top:15px;
+            align-items: center;
+        }
+
+        .search-bar input, .search-bar select{
+            padding:8px;
+            border-radius:8px;
+            border:none;
+            outline: none;
+        }
+
+        .search-bar input { flex: 2; }
+        .search-bar select { flex: 1; cursor: pointer; }
+
         .table{
             margin-top:15px;
             background:white;
@@ -220,6 +237,17 @@
         </div>
 
         <div class="search-bar">
+            <div style="display:flex; gap:10px; flex:1;">
+                <input type="text" id="searchInput" placeholder="Cari resep sehat...">
+
+                <select id="filterKategori">
+                    <option value="Semua">Semua</option>
+                    <option value="Sarapan">Sarapan</option>
+                    <option value="Makan Siang">Makan Siang</option>
+                    <option value="Makan Malam">Makan Malam</option>
+                    <option value="Makanan Ringan">Makanan Ringan</option>
+                </select>
+            </div>
 
             <button onclick="openFav()" style="background:#ff7675;color:white;border:none;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:600;">
                 ❤️ Favorite
@@ -356,6 +384,110 @@ function updateTotal(){
     document.getElementById('totalKarbo').innerText = totalKarbo + ' gr';
     document.getElementById('totalProtein').innerText = totalProtein + ' gr';
     document.getElementById('totalLemak').innerText = totalLemak + ' gr';
+}
+
+// ✨ UPDATE JAVASCRIPT SEARCH (DINAMIS & ROBUST)
+function searchResep(){
+    let search = document.getElementById('searchInput').value;
+    let kategori = document.getElementById('filterKategori').value;
+
+    // Loading State
+    document.getElementById('mealTableBody').innerHTML = `
+        <tr>
+            <td colspan="8" style="text-align:center;padding:20px;">
+                ⏳ Memuat data...
+            </td>
+        </tr>
+    `;
+
+    // ✅ FETCH MENGGUNAKAN NAMED ROUTE
+    fetch(`${searchUrl}?search=${encodeURIComponent(search)}&kategori=${encodeURIComponent(kategori)}`)
+    .then(res => res.json())
+    .then(response => {
+        let tableBody = document.getElementById('mealTableBody');
+        tableBody.innerHTML = '';
+
+        // Handle error dari backend
+        if(response.status === 'error'){
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:20px; color:red;">
+                        ❌ ${response.message}
+                        <br><br>
+                        <button onclick="searchResep()" style="padding:6px 12px;border:none;border-radius:6px;background:#7ed957;cursor:pointer;">
+                            Coba Lagi
+                        </button>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let data = response.data;
+
+        // Jika data kosong
+        if(data.length === 0){
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:20px;">
+                        ❌ Maaf, resep dengan bahan "<b>${search || 'yang dicari'}</b>" belum tersedia.
+                        <br><br>
+                        🔍 Coba kata kunci lain atau kategori berbeda.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        // Render Data
+        data.forEach(m => {
+            let kat = (m.kategori || '').toLowerCase();
+            let badgeClass = 'snack';
+            if(kat === 'sarapan') badgeClass = 'sarapan';
+            else if(kat === 'makan siang') badgeClass = 'siang';
+            else if(kat === 'makan malam') badgeClass = 'malam';
+            else if(kat === 'makanan ringan' || kat === 'snack') badgeClass = 'snack';
+
+            tableBody.innerHTML += `
+                <tr>
+                    <td>
+                        <input type="checkbox" class="meal-check"
+                            data-kalori="${m.kalori}"
+                            data-karbo="${m.karbohidrat}"
+                            data-protein="${m.protein}"
+                            data-lemak="${m.lemak}">
+                    </td>
+                    <td><span class="badge ${badgeClass}">${m.kategori}</span></td>
+                    <td>${m.nama_makanan}</td>
+                    <td>${m.kalori} kcal</td>
+                    <td>${m.karbohidrat} gr</td>
+                    <td>${m.protein} gr</td>
+                    <td>${m.lemak} gr</td>
+                    <td><a href="/resep/${m.id}" class="btn">Lihat</a></td>
+                </tr>
+            `;
+        });
+
+        // Re-bind listener
+        document.querySelectorAll('.meal-check').forEach(cb => {
+            cb.addEventListener('change', updateTotal);
+        });
+    })
+    .catch(error => {
+        // Handle Error Network
+        let tableBody = document.getElementById('mealTableBody');
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align:center; padding:20px; color:red;">
+                    ❌ Gagal memuat data. Periksa koneksi internet Anda.
+                    <br><br>
+                    <button onclick="searchResep()" style="padding:6px 12px;border:none;border-radius:6px;background:#7ed957;cursor:pointer;">
+                        Coba Lagi
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
 }
 
 // Listeners
