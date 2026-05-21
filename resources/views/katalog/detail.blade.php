@@ -100,6 +100,19 @@
             background: #45a049 !important;
         }
 
+        /* CSS UNTUK FAVORITE */
+        .fav-active {
+            color: red !important;
+            font-size: 18px;
+            transition: transform 0.2s;
+            transform: scale(1.2);
+        }
+
+        .fav-inactive {
+            color: #aaa !important;
+            font-size: 18px;
+            transform: scale(1);
+        }
 
         /* NUTRISI - UPDATED TO 2 COLUMNS */
         .nutrisi{
@@ -244,6 +257,13 @@
                                         ->exists();
                     @endphp
 
+                    <button data-id="{{ $resep->id }}" onclick="toggleFavorite(this.dataset.id)" id="btnFav">
+                        <span id="iconFav" class="@if($isFavorite) fav-active @else fav-inactive @endif">
+                            ❤️
+                        </span>
+                        Favoritkan
+                    </button>
+
                     <button onclick="shareResep()">🔗 Bagikan</button>
 
                     <form action="/konsumsi/{{ $resep->id }}" method="POST" style="display:inline;">
@@ -313,6 +333,47 @@
 window.addEventListener("error", function () {
     alert("Gagal memuat detail resep. Silakan coba lagi.");
 });
+
+function toggleFavorite(id){
+    let icon = document.getElementById('iconFav');
+    let isCurrentlyActive = icon.classList.contains('fav-active');
+    
+    if(isCurrentlyActive){
+        icon.classList.remove('fav-active');
+        icon.classList.add('fav-inactive');
+    } else {
+        icon.classList.remove('fav-inactive');
+        icon.classList.add('fav-active');
+    }
+
+    fetch('/favorite-toggle/' + id, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'added'){
+            showNotif('Berhasil ditambahkan ke Favorite ❤️');
+        } 
+        else if(data.status === 'removed'){
+            showNotif('Berhasil dihapus dari Favorite ❌');
+        } 
+        else if(data.status === 'unauthorized'){
+            icon.classList.toggle('fav-active');
+            icon.classList.toggle('fav-inactive');
+            showNotif('Silakan login terlebih dahulu! ⚠️', '#f44336');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        icon.classList.toggle('fav-active');
+        icon.classList.toggle('fav-inactive');
+        showNotif('Terjadi kesalahan sistem ⚠️', '#f44336');
+    });
+}
 
 function showNotif(text, bgColor = '#4caf50'){
     let notif = document.getElementById('notif');

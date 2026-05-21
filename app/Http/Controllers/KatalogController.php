@@ -107,4 +107,45 @@ class KatalogController extends Controller
         }
     }
 
+    /**
+     * FITUR FAVORITE (MODERN TOGGLE via AJAX)
+     */
+    public function toggleFavorite($id)
+    {
+        if (!Auth::check()) {
+            return response()->json(['status' => 'unauthorized'], 401);
+        }
+
+        $fav = FavoriteResep::where('user_id', Auth::id())
+                ->where('meal_id', $id)
+                ->first();
+
+        if ($fav) {
+            $fav->delete();
+            return response()->json(['status' => 'removed']);
+        } else {
+            FavoriteResep::create([
+                'user_id' => Auth::id(),
+                'meal_id' => $id
+            ]);
+            return response()->json(['status' => 'added']);
+        }
+    }
+
+    /**
+     * Fallback method untuk mendukung form submit biasa
+     */
+    public function favorite($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu');
+        }
+
+        FavoriteResep::firstOrCreate([
+            'user_id' => Auth::id(),
+            'meal_id' => $id
+        ]);
+
+        return back()->with('success', 'Berhasil ditambahkan ke favorit');
+    }
 }
