@@ -36,6 +36,12 @@ class EdukasiController extends Controller
             ->take(5)
             ->get();
 
+        // 🔥 3. REKOMENDASI ALTERNATIF (PANDUAN OLAHRAGA)
+        $rekomendasi = Artikel::where('kategori', 'panduan olahraga')
+            ->orderBy('id', 'desc')
+            ->take(3)
+            ->get();
+
         // 🔥 4. AMBIL DATA KAMUS GI
         $kamusGI = Resep::whereNotNull('gi')->get();
 
@@ -60,6 +66,28 @@ class EdukasiController extends Controller
             'kamusGI',
             'rekomendasiMakanan'
         ));
+    }
+
+    /**
+     * 🔥 DETAIL ARTIKEL
+     */
+    public function detailArtikel($id)
+    {
+        $artikel = Artikel::find($id);
+
+        if (!$artikel) {
+            return redirect('/edukasi')->with('error', 
+                '⚠️ Panduan untuk kondisi ini sedang disusun oleh tim medis kami. Mohon tunggu segera!'
+            );
+        }
+
+        $rekomendasi = Artikel::where('kategori', $artikel->kategori)
+            ->where('id', '!=', $id)
+            ->orderBy('id', 'desc')
+            ->take(3)
+            ->get();
+
+        return view('edukasi.detail', compact('artikel', 'rekomendasi'));
     }
 
     /**
