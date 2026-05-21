@@ -112,6 +112,8 @@
             <div class="filter">
                 <button class="active" onclick="filterData('all', this)">Semua</button>
                 <button onclick="filterData('artikel umum', this)">Artikel Umum</button>
+                <button onclick="filterData('Kamus Indeks Glikemik (GI)', this)">Kamus Indeks Glikemik (GI)</button>
+                <button onclick="filterData('panduan olahraga', this)">Panduan Olahraga</button>
                 
                 <a href="/edukasi" class="btn-small" style="margin-top: 0;">Reset</a>
             </div>
@@ -137,6 +139,65 @@
                     <div>Belum ada data edukasi tersedia</div>
                 </div>
             </div>
+
+            <div class="section" id="kamusSection" style="display:none; background:#fff; padding:20px; border-radius:15px; border:1px solid #ddd;">
+                <h3 style="margin-bottom:15px;">📊 Kamus Indeks Glikemik (GI)</h3>
+                <div style="background:#f9f9f9; padding:12px; border-radius:10px; margin-bottom:15px; font-size: 13px;">
+                    <b>Indeks Glikemik (GI):</b><br>
+                    🟢 Rendah = Aman | 🟡 Sedang = Secukupnya | 🔴 Tinggi = Batasi
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap: wrap;">
+                    <input type="text" id="searchGI" placeholder="Cari makanan..." style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid #ccc; outline: none; min-width: 200px;">
+                    <button onclick="filterGI('all')" class="btn">Semua</button>
+                    <button onclick="filterGI('rendah')" class="btn" style="background:#2ecc71; color:white; border:none;">Rendah</button>
+                    <button onclick="filterGI('sedang')" class="btn" style="background:#f1c40f; border:none;">Sedang</button>
+                    <button onclick="filterGI('tinggi')" class="btn" style="background:#e74c3c; color:white; border:none;">Tinggi</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="gi-table" style="width: 100%;">
+                        <thead style="background:#eaf5e4;">
+                            <tr>
+                                <th>Nama Makanan</th>
+                                <th>GI</th>
+                                <th>Kalori</th>
+                                <th>Protein</th>
+                                <th>Karbo</th>
+                                <th>Lemak</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse(($kamusGI ?? []) as $item)
+                            <tr data-gi="{{ $item->gi }}">
+                                <td><b>{{ $item->nama_makanan }}</b></td>
+                                <td><span class="badge-gi gi-{{ $item->gi }}">{{ ucfirst($item->gi) }}</span></td>
+                                <td>{{ $item->kalori }} kcal</td>
+                                <td>{{ $item->protein }}g</td>
+                                <td>{{ $item->karbohidrat }}g</td>
+                                <td>{{ $item->lemak }}g</td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            @if(isset($rekomendasiMakanan) && $rekomendasiMakanan->count() > 0)
+            <div id="rekomendasiSection" style="margin-top:30px; display:none;">
+                <h3 style="color:#4a7c2c;">🍽 Rekomendasi Makanan</h3>
+                <div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:15px;">
+                    @foreach($rekomendasiMakanan as $rm)
+                    <a href="{{ route('katalog.detail', $rm->id) }}" style="text-decoration:none; color:inherit;">
+                        <div class="food-card">
+                            <b>{{ $rm->nama_makanan }}</b><br>
+                            <small>{{ $rm->kalori }} kcal</small><br>
+                            <span style="font-size:10px; background:#eee; padding:2px 5px; border-radius:5px;">GI {{ ucfirst($rm->gi) }}</span>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <hr id="dividerLine" style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
 
@@ -351,6 +412,19 @@ document.getElementById('loadMoreVideo')?.addEventListener('click', function(){
         });
     });
 });
+
+document.getElementById('searchGI').addEventListener('keyup', function(){
+    let val = this.value.toLowerCase();
+    document.querySelectorAll('#kamusSection tbody tr').forEach(row => {
+        row.style.display = row.children[0].innerText.toLowerCase().includes(val) ? '' : 'none';
+    });
+});
+
+function filterGI(type){
+    document.querySelectorAll('#kamusSection tbody tr').forEach(row => {
+        row.style.display = (type === 'all' || row.dataset.gi === type) ? '' : 'none';
+    });
+}
 </script>
 </body>
 </html>
