@@ -36,6 +36,22 @@ class EdukasiController extends Controller
             ->take(5)
             ->get();
 
+        // 🔥 4. AMBIL DATA KAMUS GI
+        $kamusGI = Resep::whereNotNull('gi')->get();
+
+        // 🔥 5. AUTO REKOMENDASI MAKANAN BERDASARKAN KONDISI
+        $rekomendasiMakanan = collect();
+
+        if ($client && $client->kondisi) {
+            if (strtolower($client->kondisi) == 'diabetes') {
+                $rekomendasiMakanan = Resep::where('gi', 'rendah')->take(5)->get();
+            } else {
+                $rekomendasiMakanan = Resep::inRandomOrder()->take(5)->get();
+            }
+        } else {
+            $rekomendasiMakanan = Resep::inRandomOrder()->take(5)->get();
+        }
+
         return view('edukasi.index', compact(
             'articles',
             'videos',
@@ -45,7 +61,6 @@ class EdukasiController extends Controller
             'rekomendasiMakanan'
         ));
     }
-
 
     /**
      * 🔥 FILTER KATEGORI
@@ -110,6 +125,23 @@ class EdukasiController extends Controller
             'kamusGI',
             'rekomendasiMakanan'
         ));
+    }
+
+    /**
+     * 🔥 KAMUS INDEKS GLIKEMIK (GI)
+     */
+    public function kamusGI(Request $request)
+    {
+        $filter = $request->gi;
+        $query = Resep::query();
+
+        if ($filter) {
+            $query->where('gi', $filter);
+        }
+
+        $data = $query->whereNotNull('gi')->get();
+
+        return view('edukasi.kamus', compact('data', 'filter'));
     }
 
     /**
