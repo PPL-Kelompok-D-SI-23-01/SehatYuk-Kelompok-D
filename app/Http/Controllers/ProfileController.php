@@ -39,10 +39,10 @@ class ProfileController extends Controller
             'tinggi' => 'required|integer|min:50|max:250',
             'berat' => 'required|integer|min:20|max:300',
 
-            'tanggal_lahir' => 'nullable|date',
+            'tanggal_lahir' => 'required|date',
             'gender' => 'required|in:Pria,Wanita',
-            'negara' => 'nullable|string|max:100',
-            'no_hp' => 'nullable|digits_between:10,14',
+            'negara' => 'required|string|max:100',
+            'no_hp' => 'required|digits_between:10,14',
         ], [
             // 🔥 ERROR MESSAGE SESUAI USE CASE
             'name.required' => 'Nama wajib diisi',
@@ -58,6 +58,11 @@ class ProfileController extends Controller
 
             'gender.required' => 'Gender wajib dipilih',
 
+            'negara.required' => 'Negara wajib dipilih',
+
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi',
+
+            'no_hp.required' => 'Nomor HP wajib diisi',
             'no_hp.digits_between' => 'Nomor HP harus terdiri dari 10 sampai 14 digit',
         ]);
 

@@ -233,7 +233,7 @@
                 {{-- NEGARA --}}
                 <div class="input-group">
                     <label>Negara</label>
-                    <select name="negara" class="@error('negara') error-input @enderror">
+                    <select name="negara" required class="@error('negara') error-input @enderror">
                         <option value="">Pilih Negara</option>
                         @foreach(config('countries') as $country)
                             <option 
@@ -278,6 +278,7 @@
                         <input 
                             type="text"
                             name="no_hp"
+                            required
                             inputmode="numeric"
                             pattern="[0-9]*"
                             minlength="10"
@@ -298,7 +299,9 @@
                 {{-- TANGGAL LAHIR --}}
                 <div class="input-group">
                     <label>Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" 
+                    <input type="date"
+                           name="tanggal_lahir"
+                           required
                            value="{{ old('tanggal_lahir', optional($user->client)->tanggal_lahir ? \Carbon\Carbon::parse($user->client->tanggal_lahir)->format('Y-m-d') : '') }}"
                            class="@error('tanggal_lahir') error-input @enderror">
                     @error('tanggal_lahir')
