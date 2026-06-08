@@ -106,6 +106,25 @@
         </div>
     @endif
 
+    {{-- LANGKAH 6 — TAMPILKAN PESAN ERROR VALIDASI --}}
+    @if ($errors->any())
+        <div style="
+            background:#f8d7da;
+            color:#721c24;
+            padding:12px;
+            border-radius:10px;
+            margin-bottom:15px;
+            border:1px solid #f5c6cb;
+            font-size:14px;
+        ">
+            <ul style="margin:0;padding-left:20px;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="panel">
 
         @php
@@ -468,13 +487,21 @@
                 <option value="artikel">Artikel</option>
                 <option value="video">Video</option>
             </select>
+
+            {{-- LANGKAH 5 — VALIDASI KATEGORI DI FRONTEND --}}
             <select name="kategori" id="selectKategori" required>
                 <option value="">-- Pilih Kategori --</option>
                 <option value="artikel umum">Artikel Umum</option>
                 <option value="panduan olahraga">Panduan Olahraga</option>
             </select>
+
+            {{-- LANGKAH 3 — UBAH FORM ARTIKEL --}}
             <div id="formArtikel">
-                <textarea name="isi" id="inputKonten" placeholder="Isi artikel..."></textarea>
+                <textarea
+                    name="isi"
+                    id="inputKonten"
+                    placeholder="Isi artikel..."
+                ></textarea>
             </div>
             <div id="formVideo" style="display:none;">
                 <input name="link" id="inputLink" placeholder="Link Video / Konten">
@@ -623,9 +650,22 @@
         }
     }
 
+    // {{-- LANGKAH 4 — FUNGSI toggleForm() YANG SUDAH DIPERBARUI --}}
     function toggleForm(val){
-        document.getElementById('formArtikel').style.display = (val === 'artikel') ? 'block' : 'none';
-        document.getElementById('formVideo').style.display = (val === 'video') ? 'block' : 'none';
+
+        document.getElementById('formArtikel').style.display =
+            (val === 'artikel') ? 'block' : 'none';
+
+        document.getElementById('formVideo').style.display =
+            (val === 'video') ? 'block' : 'none';
+
+        if(val === 'artikel'){
+            document.getElementById('inputKonten').required = true;
+            document.getElementById('inputLink').required = false;
+        }else{
+            document.getElementById('inputKonten').required = false;
+            document.getElementById('inputLink').required = true;
+        }
     }
 
     document.getElementById('selectTipe').addEventListener('change', function(){

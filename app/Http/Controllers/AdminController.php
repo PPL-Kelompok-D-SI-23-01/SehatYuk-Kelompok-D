@@ -256,8 +256,8 @@ class AdminController extends Controller
             'judul' => 'required',
             'tipe' => 'required|in:artikel,video',
             'kategori' => 'required',
-            'isi' => 'nullable',
-            'link' => 'nullable',
+            'isi' => 'required_if:tipe,artikel',
+            'link' => 'required_if:tipe,video',
             'gambar_edukasi' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
@@ -285,8 +285,8 @@ class AdminController extends Controller
             'judul' => 'required',
             'tipe' => 'required|in:artikel,video',
             'kategori' => 'required',
-            'isi' => 'nullable',
-            'link' => 'nullable',
+            'isi' => 'required_if:tipe,artikel',
+            'link' => 'required_if:tipe,video',
             'gambar_edukasi' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
