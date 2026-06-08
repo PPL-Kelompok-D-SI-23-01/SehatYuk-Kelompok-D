@@ -55,28 +55,31 @@ Route::middleware(['auth'])->group(function () {
 
         $request->validate([
             'target_berat' => 'required|numeric|min:30|max:200',
-            'berat_harian' => 'nullable|numeric|min:30|max:200'
+            'berat_harian' => 'required|numeric|min:30|max:200'
+        ],[
+            'berat_harian.required' => 'Berat hari ini wajib diisi',
+            'berat_harian.numeric' => 'Berat harus berupa angka',
+            'berat_harian.min' => 'Berat minimal 30 kg',
+            'berat_harian.max' => 'Berat maksimal 200 kg',
         ]);
 
         $user->client->update([
             'target_berat' => $request->target_berat
         ]);
 
-        if($request->berat_harian){
-            $user->client->update([
-                'berat' => $request->berat_harian
-            ]);
+        $user->client->update([
+            'berat' => $request->berat_harian
+        ]);
 
-            RiwayatBerat::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'tanggal' => now()->toDateString()
-                ],
-                [
-                    'berat' => $request->berat_harian
-                ]
-            );
-        }
+        RiwayatBerat::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'tanggal' => now()->toDateString()
+            ],
+            [
+                'berat' => $request->berat_harian
+            ]
+        );
 
         return back()->with('success', 'Data berhasil disimpan!');
     });
@@ -129,12 +132,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/user/{id}', [AdminController::class, 'deleteUser']);
 
         // ARTIKEL + VIDEO (SUDAH MERGED)
-        // Cukup menggunakan endpoint artikel karena pemisahan tipe ditangani di Controller
         Route::post('/admin/artikel',[AdminController::class,'storeArtikel']);
         Route::put('/admin/artikel/{id}',[AdminController::class,'updateArtikel']);
         Route::delete('/admin/artikel/{id}',[AdminController::class,'deleteArtikel']);
         
-        // Route GET edit dihapus karena sistem menggunakan Modal di halaman index admin
     });
 
 });
