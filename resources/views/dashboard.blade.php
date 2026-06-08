@@ -252,6 +252,23 @@
 
 <div class="main">
 
+    @if ($errors->any())
+    <div style="
+    background:#f8d7da;
+    color:#721c24;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:15px;
+    border:1px solid #f5c6cb;
+    ">
+        <ul style="margin:0;padding-left:20px;">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
     @if(session('error'))
     <div style="background:#f8d7da;color:#721c24;padding:10px;border-radius:10px;margin-bottom:15px;border:1px solid #f5c6cb;">
         {{ session('error') }}
@@ -418,7 +435,10 @@
                             type="number"
                             name="berat_harian"
                             step="0.1"
-                            value="{{ $client->berat ?? 0 }}"
+                            min="30"
+                            max="200"
+                            required
+                            value="{{ old('berat_harian', $client->berat ?? 0) }}"
                             placeholder="Masukkan berat..."
                             class="input-harian"
                         >
