@@ -231,6 +231,37 @@ class AdminController extends Controller
     // 🔥 KELOLA USER
     // ==========================================
 
+    public function updateUser(Request $request, $id)
+    {
+        if (Auth::user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'role' => 'required|in:admin,user',
+        ],[
+            'name.required' => 'Nama wajib diisi',
+            'email.required' => 'Email wajib diisi',
+            'email.email' => 'Format email tidak valid',
+            'email.unique' => 'Email sudah digunakan',
+            'role.required' => 'Role wajib dipilih',
+        ]);
+
+        $user->update([
+            'name'  => $validated['name'],
+            'email' => $validated['email'],
+            'role'  => $validated['role'],
+        ]);
+
+        return redirect()
+            ->route('admin', ['tab' => 'pengguna'])
+            ->with('success', 'Data pengguna berhasil diperbarui');
+    }
+
     public function deleteUser($id)
     {
         if (Auth::user()->role !== 'admin') {
