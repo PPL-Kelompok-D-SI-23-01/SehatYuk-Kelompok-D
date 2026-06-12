@@ -194,6 +194,7 @@
                             <td>{{ $user->client->umur ?? '-' }}</td>
                             <td class="action">
                                 <button class="edit" data-id="{{ $user->id }}" onclick="showUser(this.dataset.id)">👁</button>
+                                <button class="edit" data-id="{{ $user->id }}" onclick="editUser(this.dataset.id)">✏</button>
                                 <form action="/admin/user/{{ $user->id }}" method="POST" style="display: inline;">
                                     @csrf @method('DELETE')
                                     <button onclick="return confirm('Yakin hapus user ini?')" class="delete">🗑</button>
@@ -385,6 +386,61 @@
         <div style="margin-top:20px; text-align: right;">
             <button class="btn gray" onclick="closeUser()">Tutup</button>
         </div>
+    </div>
+</div>
+
+{{-- MODAL EDIT USER --}}
+<div id="modalEditUser" class="modal">
+    <div class="modal-content">
+
+        <h3>Edit Pengguna</h3>
+
+        <form id="formEditUser" method="POST">
+
+            @csrf
+            @method('PUT')
+
+            <input
+                type="text"
+                name="name"
+                id="edit_name"
+                placeholder="Nama"
+                required
+            >
+
+            <input
+                type="email"
+                name="email"
+                id="edit_email"
+                placeholder="Email"
+                required
+            >
+
+            <select
+                name="role"
+                id="edit_role"
+                required
+            >
+                <option value="">Pilih Role</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+            </select>
+
+            <div style="margin-top:15px;display:flex;gap:10px;">
+                <button type="submit" class="btn green">
+                    Simpan
+                </button>
+
+                <button
+                    type="button"
+                    class="btn gray"
+                    onclick="closeEditUser()">
+                    Batal
+                </button>
+            </div>
+
+        </form>
+
     </div>
 </div>
 
@@ -730,6 +786,32 @@
             });
         });
     });
+
+    function editUser(id){
+
+        fetch('/admin/user/' + id)
+        .then(response => response.json())
+        .then(data => {
+
+            document.getElementById('modalEditUser').style.display = 'block';
+
+            document.getElementById('edit_name').value =
+                data.name ?? '';
+
+            document.getElementById('edit_email').value =
+                data.email ?? '';
+
+            document.getElementById('edit_role').value =
+                data.role ?? 'user';
+
+            document.getElementById('formEditUser').action =
+                '/admin/user/' + data.id;
+        });
+    }
+
+    function closeEditUser(){
+        document.getElementById('modalEditUser').style.display = 'none';
+    }
 </script>
 </body>
 </html>
