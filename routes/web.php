@@ -129,6 +129,7 @@ Route::middleware(['auth'])->group(function () {
 
         // USER
         Route::get('/admin/user/{id}', [AdminController::class, 'detailUser']);
+        Route::put('/admin/user/{id}', [AdminController::class, 'updateUser']);
         Route::delete('/admin/user/{id}', [AdminController::class, 'deleteUser']);
 
         // ARTIKEL + VIDEO (SUDAH MERGED)
