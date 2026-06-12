@@ -461,7 +461,7 @@
                 <option value="Lainnya">Lainnya</option>
             </select>
             
-            <select name="gi" id="res_gi">
+            <select name="gi" id="res_gi" required>
                 <option value="">-- Pilih Indeks Glikemik (GI) --</option>
                 <option value="rendah">Rendah</option>
                 <option value="sedang">Sedang</option>
@@ -507,20 +507,20 @@
             
             <input name="kalori" id="res_kalori" placeholder="Total Kalori (Auto)" readonly>
             
-            <input type="number" name="waktu" id="res_waktu" class="angka-only" placeholder="Waktu Masak (menit)">
-            <select name="kesulitan" id="res_kesulitan">
+            <input type="number" name="waktu" id="res_waktu" class="angka-only" placeholder="Waktu Masak (menit)" required>
+            <select name="kesulitan" id="res_kesulitan" required>
                 <option value="">-- Tingkat Kesulitan --</option>
                 <option value="Mudah">Mudah</option>
                 <option value="Sedang">Sedang</option>
                 <option value="Sulit">Sulit</option>
             </select>
-            <input type="number" name="porsi" id="res_porsi" class="angka-only" placeholder="Jumlah Porsi">
+            <input type="number" name="porsi" id="res_porsi" class="angka-only" placeholder="Jumlah Porsi" required>
             <input type="date" name="tanggal" id="res_tanggal" required>
             <input type="file" name="image" onchange="previewImage(event)">
             <div class="preview"><img id="previewImg" src="" style="display:none;"></div>
-            <textarea name="deskripsi" id="res_deskripsi" placeholder="Deskripsi makanan..."></textarea>
-            <textarea name="bahan" id="res_bahan" placeholder="Bahan (pisahkan per baris)..."></textarea>
-            <textarea name="langkah" id="res_langkah" placeholder="Langkah memasak (pisahkan per baris)..."></textarea>
+            <textarea name="deskripsi" id="res_deskripsi" placeholder="Deskripsi makanan..." required></textarea>
+            <textarea name="bahan" id="res_bahan" placeholder="Bahan (pisahkan per baris)..." required></textarea>
+            <textarea name="langkah" id="res_langkah" placeholder="Langkah memasak (pisahkan per baris)..." required></textarea>
             <div style="margin-top:15px; display:flex; gap:10px;">
                 <button type="submit" class="btn green">Simpan</button>
                 <button type="button" class="btn gray" onclick="closeModal()">Batal</button>
@@ -706,7 +706,6 @@
         }
     }
 
-    // {{-- LANGKAH 4 — FUNGSI toggleForm() YANG SUDAH DIPERBARUI --}}
     function toggleForm(val){
 
         document.getElementById('formArtikel').style.display =

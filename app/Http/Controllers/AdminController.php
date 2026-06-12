@@ -132,19 +132,28 @@ class AdminController extends Controller
 
         $data = $request->validate([
             'nama_makanan' => 'required',
-            'kategori' => 'nullable',
+            'kategori' => 'required',
             'protein' => 'required|numeric',
             'karbohidrat' => 'required|numeric',
             'lemak' => 'required|numeric',
-            'gi' => 'nullable|in:rendah,sedang,tinggi',
+            'gi' => 'required|in:rendah,sedang,tinggi',
             'tanggal' => 'required|date',
-            'deskripsi' => 'nullable',
-            'bahan' => 'nullable',
-            'langkah' => 'nullable',
+            'deskripsi' => 'required',
+            'bahan' => 'required',
+            'langkah' => 'required',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'waktu' => 'nullable|integer|min:1',
-            'kesulitan' => 'nullable|in:Mudah,Sedang,Sulit',
-            'porsi' => 'nullable|integer|min:1',
+            'waktu' => 'required|integer|min:1',
+            'kesulitan' => 'required|in:Mudah,Sedang,Sulit',
+            'porsi' => 'required|integer|min:1',
+        ],[
+            'kategori.required' => 'Kategori wajib dipilih',
+            'gi.required' => 'Indeks Glikemik (GI) wajib dipilih',
+            'waktu.required' => 'Waktu masak wajib diisi',
+            'kesulitan.required' => 'Tingkat kesulitan wajib dipilih',
+            'porsi.required' => 'Jumlah porsi wajib diisi',
+            'deskripsi.required' => 'Deskripsi makanan wajib diisi',
+            'bahan.required' => 'Bahan wajib diisi',
+            'langkah.required' => 'Langkah memasak wajib diisi',
         ]);
 
         $data['kalori'] = ($data['karbohidrat'] * 4) + ($data['protein'] * 4) + ($data['lemak'] * 9);
@@ -180,19 +189,28 @@ class AdminController extends Controller
 
         $data = $request->validate([
             'nama_makanan' => 'required',
-            'kategori' => 'nullable',
+            'kategori' => 'required',
             'protein' => 'required|numeric',
             'karbohidrat' => 'required|numeric',
             'lemak' => 'required|numeric',
-            'gi' => 'nullable|in:rendah,sedang,tinggi',
+            'gi' => 'required|in:rendah,sedang,tinggi',
             'tanggal' => 'required|date',
-            'deskripsi' => 'nullable',
-            'bahan' => 'nullable',
-            'langkah' => 'nullable',
+            'deskripsi' => 'required',
+            'bahan' => 'required',
+            'langkah' => 'required',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'waktu' => 'nullable|integer|min:1',
-            'kesulitan' => 'nullable|in:Mudah,Sedang,Sulit',
-            'porsi' => 'nullable|integer|min:1',
+            'waktu' => 'required|integer|min:1',
+            'kesulitan' => 'required|in:Mudah,Sedang,Sulit',
+            'porsi' => 'required|integer|min:1',
+        ],[
+            'kategori.required' => 'Kategori wajib dipilih',
+            'gi.required' => 'Indeks Glikemik (GI) wajib dipilih',
+            'waktu.required' => 'Waktu masak wajib diisi',
+            'kesulitan.required' => 'Tingkat kesulitan wajib dipilih',
+            'porsi.required' => 'Jumlah porsi wajib diisi',
+            'deskripsi.required' => 'Deskripsi makanan wajib diisi',
+            'bahan.required' => 'Bahan wajib diisi',
+            'langkah.required' => 'Langkah memasak wajib diisi',
         ]);
 
         $data['kalori'] = ($data['karbohidrat'] * 4) + ($data['protein'] * 4) + ($data['lemak'] * 9);
