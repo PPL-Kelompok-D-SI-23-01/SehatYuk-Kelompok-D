@@ -448,7 +448,12 @@
 <div id="modal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">Tambah Resep</h3>
-        <form id="formResep" method="POST" action="/admin/resep" enctype="multipart/form-data">
+        <form
+            id="formResep"
+            method="POST"
+            action="/admin/resep"
+            enctype="multipart/form-data"
+            onsubmit="return validasiUkuranGambar()">
             @csrf
             <div id="methodContainerResep"></div>
             <input name="nama_makanan" id="res_nama" placeholder="Nama Makanan" required>
@@ -516,7 +521,18 @@
             </select>
             <input type="number" name="porsi" id="res_porsi" class="angka-only" placeholder="Jumlah Porsi" required>
             <input type="date" name="tanggal" id="res_tanggal" required>
-            <input type="file" name="image" onchange="previewImage(event)">
+            
+            <input
+                type="file"
+                name="image"
+                id="imageInput"
+                accept=".jpg,.jpeg,.png"
+                onchange="previewImage(event)">
+                
+            <small style="color:red; display:block; margin-top:5px;">
+                Maksimal ukuran gambar 2 MB
+            </small>
+
             <div class="preview"><img id="previewImg" src="" style="display:none;"></div>
             <textarea name="deskripsi" id="res_deskripsi" placeholder="Deskripsi makanan..." required></textarea>
             <textarea name="bahan" id="res_bahan" placeholder="Bahan (pisahkan per baris)..." required></textarea>
@@ -533,7 +549,12 @@
 <div id="modalArtikel" class="modal">
     <div class="modal-content">
         <h3 id="modalArtikelTitle">Tambah Artikel / Video</h3>
-        <form method="POST" id="formArtikelUtama" action="/admin/artikel" enctype="multipart/form-data">
+        <form 
+            method="POST" 
+            id="formArtikelUtama" 
+            action="/admin/artikel" 
+            enctype="multipart/form-data"
+            onsubmit="return validasiGambarArtikel()">
             @csrf
             <div id="methodContainerArtikel"></div>
             
@@ -565,7 +586,16 @@
 
             <div style="margin-top:10px;">
                 <label style="font-size: 13px; color: #333; font-weight: 500;">Gambar Artikel</label>
-                <input type="file" name="gambar_edukasi" id="gambarInput" onchange="previewGambarArtikel(event)">
+                <input
+                    type="file"
+                    name="gambar_edukasi"
+                    id="gambarArtikel"
+                    accept=".jpg,.jpeg,.png"
+                    onchange="previewGambarArtikel(event)">
+
+                <small style="color:red; display:block; margin-top:5px;">
+                    Maksimal ukuran gambar 2 MB
+                </small>
 
                 <div class="preview" style="margin-top:10px;">
                     <img id="previewGambarArtikel" style="display:none; width:100%; max-height:150px; object-fit:cover; border-radius:10px; border: 1px solid #ddd;">
@@ -750,6 +780,62 @@
         else alert('Pindah ke tab Artikel atau Resep untuk menambah data.');
     }
 
+    function editUser(id){
+
+        fetch('/admin/user/' + id)
+        .then(response => response.json())
+        .then(data => {
+
+            document.getElementById('modalEditUser').style.display = 'block';
+
+            document.getElementById('edit_name').value =
+                data.name ?? '';
+
+            document.getElementById('edit_email').value =
+                data.email ?? '';
+
+            document.getElementById('edit_role').value =
+                data.role ?? 'user';
+
+            document.getElementById('formEditUser').action =
+                '/admin/user/' + data.id;
+        });
+    }
+
+    function closeEditUser(){
+        document.getElementById('modalEditUser').style.display = 'none';
+    }
+
+    function validasiUkuranGambar(){
+        const fileInput = document.getElementById("imageInput");
+        if(fileInput && fileInput.files.length > 0){
+            const file = fileInput.files[0];
+            const maxSize = 2 * 1024 * 1024; // 2 MB
+
+            if(file.size > maxSize){
+                alert("Ukuran gambar maksimal 2 MB");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // LANGKAH 4 — Fungsi validasi ukuran gambar artikel saat form disubmit
+    function validasiGambarArtikel(){
+        const input = document.getElementById("gambarArtikel");
+
+        if(input && input.files.length > 0){
+            const file = input.files[0];
+            const maxSize = 2 * 1024 * 1024;
+
+            if(file.size > maxSize){
+                alert("Ukuran gambar artikel maksimal 2 MB");
+                return false;
+            }
+        }
+        return true;
+    }
+
     document.addEventListener("DOMContentLoaded", function(){
         const currentTabParam = "{{ request('tab', 'pengguna') }}";
         setActiveTab(currentTabParam);
@@ -784,33 +870,49 @@
                 this.value = this.value.replace(/[^0-9.]/g, '');
             });
         });
+
+        const imageInput = document.getElementById("imageInput");
+        if(imageInput){
+            imageInput.addEventListener("change", function(){
+                const file = this.files[0];
+                if(!file) return;
+
+                const maxSize = 2 * 1024 * 1024; // 2 MB
+
+                if(file.size > maxSize){
+                    alert("Ukuran gambar maksimal 2 MB");
+                    this.value = ""; 
+                    
+                    let imgPreview = document.getElementById('previewImg');
+                    if(imgPreview) imgPreview.style.display = 'none';
+                    
+                    return false;
+                }
+            });
+        }
+
+        // LANGKAH 2 — Validasi langsung saat user memilih gambar artikel
+        const gambarArtikel = document.getElementById("gambarArtikel");
+        if(gambarArtikel){
+            gambarArtikel.addEventListener("change", function(){
+                const file = this.files[0];
+                if(!file) return;
+
+                const maxSize = 2 * 1024 * 1024;
+
+                if(file.size > maxSize){
+                    alert("Ukuran gambar artikel maksimal 2 MB");
+                    this.value = ""; // Reset input file agar kosong kembali
+                    
+                    // Sembunyikan preview gambar artikel jika file tidak valid
+                    let imgPreviewArtikel = document.getElementById('previewGambarArtikel');
+                    if(imgPreviewArtikel) imgPreviewArtikel.style.display = 'none';
+
+                    return false;
+                }
+            });
+        }
     });
-
-    function editUser(id){
-
-        fetch('/admin/user/' + id)
-        .then(response => response.json())
-        .then(data => {
-
-            document.getElementById('modalEditUser').style.display = 'block';
-
-            document.getElementById('edit_name').value =
-                data.name ?? '';
-
-            document.getElementById('edit_email').value =
-                data.email ?? '';
-
-            document.getElementById('edit_role').value =
-                data.role ?? 'user';
-
-            document.getElementById('formEditUser').action =
-                '/admin/user/' + data.id;
-        });
-    }
-
-    function closeEditUser(){
-        document.getElementById('modalEditUser').style.display = 'none';
-    }
 </script>
 </body>
 </html>
